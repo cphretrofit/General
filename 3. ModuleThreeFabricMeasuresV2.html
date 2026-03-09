@@ -1674,6 +1674,7 @@
                     </div>
                     <div id="failMessage" style="margin-top: 2rem; font-size: 1.125rem; font-weight: 600; color: var(--danger); display: none;">
                         ✗ You did not achieve the pass mark. Please review the material and try again.
+                        <br><button class="btn btn-primary" onclick="retakeQuiz()" style="margin-top: 1rem;">Retake Assessment</button>
                     </div>
                 </div>
             </div>
@@ -1820,6 +1821,30 @@
             
             document.getElementById('finalResult').style.display = 'block';
             document.getElementById('finalResult').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function retakeQuiz() {
+            // Reset quiz state
+            finalScore = 0;
+            finalQuestionsAnswered = 0;
+            
+            // Hide results
+            document.getElementById('finalResult').style.display = 'none';
+            
+            // Reset all quiz options
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('selected', 'correct', 'incorrect');
+                opt.style.pointerEvents = '';
+            });
+            
+            // Reset all feedbacks
+            document.querySelectorAll('.quiz-feedback').forEach(fb => {
+                fb.classList.remove('show', 'correct', 'incorrect');
+                fb.textContent = '';
+            });
+            
+            // Go back to first final quiz question
+            showSection(10);
         }
 
         // Initialize
