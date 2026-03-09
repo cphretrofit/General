@@ -1360,8 +1360,26 @@
                     document.getElementById('cert-id').textContent = Math.random().toString(36).substr(2, 9).toUpperCase();
                 }, 1500);
             } else {
-                feedback.innerHTML = `<span style="color: #e74c3c; font-size: 1.3rem;">✗ FAILED. You scored ${percentage}%. You need 80% to pass.</span><br><button class="btn-primary" onclick="location.reload()" style="margin-top: 1rem;">Retry Assessment</button>`;
+                feedback.innerHTML = `<span style="color: #e74c3c; font-size: 1.3rem;">✗ FAILED. You scored ${percentage}%. You need 80% to pass.</span><br><button class="btn-primary" onclick="retryFinalExam()" style="margin-top: 1rem;">Retry Assessment</button>`;
             }
+        }
+
+        function retryFinalExam() {
+            // Reset all quiz options
+            const containers = document.querySelectorAll('#final-exam .quiz-container');
+            containers.forEach(container => {
+                const options = container.querySelectorAll('.quiz-option');
+                options.forEach(opt => {
+                    opt.classList.remove('selected', 'correct', 'incorrect');
+                    opt.style.pointerEvents = '';
+                });
+            });
+            
+            // Clear feedback
+            document.getElementById('final-feedback').innerHTML = '';
+            
+            // Scroll back to top of exam
+            document.getElementById('final-exam').scrollIntoView({ behavior: 'smooth' });
         }
 
         // Prevent accidental navigation during quiz
