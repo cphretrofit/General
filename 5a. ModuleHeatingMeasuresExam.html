@@ -536,14 +536,28 @@
                 <h2>Module Five: Ventilation and Heating Exam</h2>
                 <p style="color: #718096; margin-bottom: 30px;">Demonstrate your knowledge of ventilation systems, Part F compliance, and CPH Retrofit standards.</p>
                 
+                <div style="background: #f7fafc; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem;">
+                    <h3 style="margin-bottom: 1rem;">👤 Candidate Information</h3>
+                    <input type="text" id="candidateName" placeholder="Enter your full name" style="
+                        width: 100%;
+                        max-width: 400px;
+                        padding: 0.75rem;
+                        font-size: 1rem;
+                        border: 2px solid var(--primary);
+                        border-radius: 8px;
+                        margin: 0 auto;
+                        display: block;
+                    " />
+                </div>
+                
                 <div class="exam-info">
                     <div class="info-card">
                         <h3>30</h3>
                         <p>Questions</p>
                     </div>
                     <div class="info-card">
-                        <h3>70%</h3>
-                        <p>Pass Mark<br>(21/30 correct)</p>
+                        <h3>80%</h3>
+                        <p>Pass Mark<br>(24/30 correct)</p>
                     </div>
                     <div class="info-card">
                         <h3>60</h3>
@@ -559,7 +573,7 @@
                     <h3>⚠️ Examination Rules</h3>
                     <ul>
                         <li>You have <strong>60 minutes</strong> to complete all 30 questions</li>
-                        <li>You must achieve <strong>70% (21 correct)</strong> to pass</li>
+                        <li>You must achieve <strong>80% (24 correct)</strong> to pass</li>
                         <li>If you fail, you may resit <strong>once</strong> immediately</li>
                         <li>If you fail the resit, you must wait 24 hours and retake the induction</li>
                         <li>The timer cannot be paused once started</li>
@@ -883,7 +897,18 @@
             return array;
         }
 
+        let candidateName = '';
+        
         function startExam() {
+            const nameInput = document.getElementById('candidateName');
+            candidateName = nameInput.value.trim();
+            
+            if (!candidateName) {
+                alert('Please enter your full name to continue.');
+                nameInput.focus();
+                return;
+            }
+            
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('examScreen').classList.remove('hidden');
             examStarted = true;
@@ -1022,7 +1047,7 @@
             });
 
             const percentage = Math.round((correct / examData.length) * 100);
-            const passed = percentage >= 70;
+            const passed = percentage >= 80;
             const timeUsed = 3600 - timeRemaining;
             const minutesUsed = Math.floor(timeUsed / 60);
             const secondsUsed = timeUsed % 60;
@@ -1038,11 +1063,18 @@
                 resultMessage.style.color = '#48bb78';
                 resultDetails.innerHTML = `
                     You scored <strong>${correct}/${examData.length} (${percentage}%)</strong><br>
-                    Pass mark: 70% (21/30)<br>
+                    Pass mark: 80% (24/30)<br>
                     Time used: ${minutesUsed}m ${secondsUsed}s<br>
-                    <span style="color: #48bb78; font-weight: 600;">You are certified in Ventilation & Part F!</span>
+                    <span style="color: #48bb78; font-weight: 600;">You are certified in Ventilation & Part F!</span><br><br>
+                    <button onclick="downloadCertificate()" style="background: #48bb78; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">📥 Download Certificate</button>
+                    <button onclick="window.location.href='https://cphretrofit.github.io/cphretrofit/6.%20Health&SafetyTraining.html'" style="background: #2563eb; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">Next Module →</button>
                 `;
                 resitSection.classList.add('hidden');
+                
+                // Auto-download certificate after 2 seconds
+                setTimeout(() => {
+                    downloadCertificate();
+                }, 2000);
             } else {
                 if (attemptNumber === 1) {
                     scoreCircle.className = 'score-circle resit';
@@ -1050,8 +1082,8 @@
                     resultMessage.style.color = '#ed8936';
                     resultDetails.innerHTML = `
                         You scored <strong>${correct}/${examData.length} (${percentage}%)</strong><br>
-                        Required: 70% (21/30)<br>
-                        You need ${21 - correct} more correct answers to pass.<br>
+                        Required: 80% (24/30)<br>
+                        You need ${24 - correct} more correct answers to pass.<br>
                         <span style="color: #ed8936; font-weight: 600;">You have one resit available.</span>
                     `;
                     resitSection.classList.remove('hidden');
@@ -1061,7 +1093,7 @@
                     resultMessage.style.color = '#e53e3e';
                     resultDetails.innerHTML = `
                         You scored <strong>${correct}/${examData.length} (${percentage}%)</strong> on your resit.<br>
-                        Required: 70% (21/30)<br>
+                        Required: 80% (24/30)<br>
                         <span style="color: #e53e3e; font-weight: 600;">You must wait 24 hours and retake the induction.</span>
                     `;
                     resitSection.classList.add('hidden');
@@ -1173,6 +1205,67 @@
             document.getElementById('examScreen').classList.add('hidden');
             document.getElementById('reviewContainer').classList.add('hidden');
             document.getElementById('startScreen').classList.remove('hidden');
+        }
+
+        function downloadCertificate() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.strokeStyle = '#1e3a5f';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            
+            ctx.fillStyle = '#1e3a5f';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Certificate of Completion', canvas.width/2, 100);
+            
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#2c5282';
+            ctx.fillText('CPH Retrofit Training Programme', canvas.width/2, 150);
+            
+            ctx.font = 'bold 36px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('Module 5: Heating Measures Exam', canvas.width/2, 250);
+            
+            // Candidate name
+            ctx.font = 'bold 32px Arial';
+            ctx.fillStyle = '#1e3a5f';
+            ctx.fillText(candidateName, canvas.width/2, 320);
+            
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#666666';
+            const passDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            ctx.fillText('Date of Pass: ' + passDate, canvas.width/2, 400);
+            
+            // Score - MUST BE CLEARLY VISIBLE
+            const correct = userAnswers.filter((a, i) => a === examData[i].answer).length;
+            const percentage = Math.round((correct / examData.length) * 100);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText(`Score: ${correct}/30 (${percentage}%)`, canvas.width/2, 470);
+            
+            ctx.font = 'italic 18px Arial';
+            ctx.fillText('This certificate confirms successful completion of the assessment', canvas.width/2, 650);
+            
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText('CPH RETROFIT', canvas.width/2, 750);
+            
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `CPH_Retrofit_Module5_Certificate_${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
         }
 
         // Keyboard navigation
