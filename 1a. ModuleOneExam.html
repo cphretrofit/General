@@ -274,7 +274,34 @@
             <span class="difficulty-badge">Moderate Difficulty</span>
         </header>
 
-        <div class="quiz-container" id="quizForm">
+        <!-- Name Collection Screen -->
+        <div id="nameScreen" style="padding: 2rem; text-align: center;">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Before You Begin</h2>
+            <p style="margin-bottom: 2rem; color: var(--dark);">Please enter your full name for the certificate:</p>
+            <input type="text" id="candidateName" placeholder="Enter your full name" style="
+                width: 100%;
+                max-width: 400px;
+                padding: 1rem;
+                font-size: 1rem;
+                border: 2px solid var(--secondary);
+                border-radius: 8px;
+                margin-bottom: 1.5rem;
+                text-align: center;
+            " />
+            <br>
+            <button onclick="startQuiz()" style="
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 1rem 2rem;
+                font-size: 1rem;
+                font-weight: 600;
+                border-radius: 8px;
+                cursor: pointer;
+            ">Start Assessment</button>
+        </div>
+
+        <div class="quiz-container" id="quizForm" style="display: none;">
             <!-- Question 1 -->
             <div class="question" data-correct="b">
                 <div class="question-text">
@@ -559,6 +586,21 @@
     </div>
 
     <script>
+        let candidateName = '';
+        
+        function startQuiz() {
+            const nameInput = document.getElementById('candidateName');
+            candidateName = nameInput.value.trim();
+            
+            if (!candidateName) {
+                alert('Please enter your name to continue.');
+                return;
+            }
+            
+            document.getElementById('nameScreen').style.display = 'none';
+            document.getElementById('quizForm').style.display = 'block';
+        }
+        
         function submitQuiz() {
             const questions = document.querySelectorAll('.question');
             let score = 0;
@@ -612,14 +654,23 @@
             resultsDiv.classList.add('show');
             scoreText.textContent = `${score}/${questions.length}`;
             
-            if (score >= 7) {
+            const percentage = (score/questions.length*100).toFixed(0);
+            
+            if (score >= 8) { // 80% pass mark
                 scoreCircle.className = 'score-circle pass';
                 resultMessage.textContent = 'Congratulations! You have passed the assessment.';
-                resultDetails.textContent = `You scored ${score} out of ${questions.length} (${(score/questions.length*100).toFixed(0)}%). You demonstrate good understanding of CPH Retrofit's operations, values, and procedures.`;
+                resultDetails.innerHTML = `You scored ${score} out of ${questions.length} (${percentage}%). You demonstrate good understanding of CPH Retrofit's operations, values, and procedures.<br><br>
+                    <button onclick="downloadCertificate()" style="background: var(--accent); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 1rem 0.5rem 0 0;">📥 Download Certificate</button>
+                    <button onclick="window.location.href='https://cphretrofit.github.io/cphretrofit/2.%20ModuleTwo%2011022026.html'" style="background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 1rem 0 0 0.5rem;">Next Module →</button>`;
+                
+                // Auto-download certificate after 2 seconds
+                setTimeout(() => {
+                    downloadCertificate();
+                }, 2000);
             } else {
                 scoreCircle.className = 'score-circle fail';
                 resultMessage.textContent = 'Assessment not passed.';
-                resultDetails.textContent = `You scored ${score} out of ${questions.length} (${(score/questions.length*100).toFixed(0)}%). You need to score at least 7 out of 10 to pass. Please review the induction materials and retake the assessment.`;
+                resultDetails.textContent = `You scored ${score} out of ${questions.length} (${percentage}%). You need to score at least 80% (8 out of 10) to pass. Please review the induction materials and retake the assessment.`;
             }
 
             // Disable submit button
@@ -627,6 +678,85 @@
             
             // Scroll to results
             resultsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function downloadCertificate() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            ctx.strokeStyle = '#1e3a5f';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            
+            // Header
+            ctx.fillStyle = '#1e3a5f';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Certificate of Completion', canvas.width/2, 100);
+            
+            // Subtitle
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#2c5282';
+            ctx.fillText('CPH Retrofit Training Programme', canvas.width/2, 150);
+            
+            // Module name
+            ctx.font = 'bold 36px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('Module One: Who We Are', canvas.width/2, 250);
+            
+            // Candidate name
+            ctx.font = 'bold 32px Arial';
+            ctx.fillStyle = '#1e3a5f';
+            ctx.fillText(candidateName, canvas.width/2, 320);
+            
+            // Pass date
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#666666';
+            const passDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            ctx.fillText('Date of Pass: ' + passDate, canvas.width/2, 400);
+            
+            // Score - MUST BE VISIBLE
+            const questions = document.querySelectorAll('.question');
+            let score = 0;
+            questions.forEach(question => {
+                const selected = question.querySelector('input[type="radio"]:checked');
+                if (selected) {
+                    const correctAnswer = question.getAttribute('data-correct');
+                    if (selected.value === correctAnswer) score++;
+                }
+            });
+            const percentage = Math.round((score / questions.length) * 100);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText(`Score: ${score}/${questions.length} (${percentage}%)`, canvas.width/2, 470);
+            
+            // Footer
+            ctx.font = 'italic 18px Arial';
+            ctx.fillText('This certificate confirms successful completion of the assessment', canvas.width/2, 650);
+            
+            // Logo text
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText('CPH RETROFIT', canvas.width/2, 750);
+            
+            // Download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `CPH_Retrofit_Module1_Certificate_${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
         }
 
         function retryQuiz() {
