@@ -624,7 +624,19 @@
         <h3 style="color: var(--gray); margin-bottom: 2rem;">Introduction to PAS2030/2035</h3>
         
         <div class="exam-info">
-            <h3>📋 Exam Information</h3>
+            <h3>👤 Candidate Information</h3>
+            <input type="text" id="candidateName" placeholder="Enter your full name" style="
+                width: 100%;
+                max-width: 400px;
+                padding: 0.75rem;
+                font-size: 1rem;
+                border: 2px solid var(--secondary);
+                border-radius: 8px;
+                margin: 1rem auto;
+                display: block;
+            " />
+            
+            <h3 style="margin-top: 1.5rem;">📋 Exam Information</h3>
             <ul>
                 <li><strong>Duration:</strong> 45 minutes</li>
                 <li><strong>Questions:</strong> 30 multiple choice questions</li>
@@ -1166,7 +1178,18 @@
         updateProgress();
     }
 
+    let candidateName = '';
+    
     function startExam() {
+        const nameInput = document.getElementById('candidateName');
+        candidateName = nameInput.value.trim();
+        
+        if (!candidateName) {
+            alert('Please enter your full name to continue.');
+            nameInput.focus();
+            return;
+        }
+        
         document.getElementById('startScreen').classList.add('hidden');
         document.getElementById('examInterface').classList.remove('hidden');
         startTimer();
@@ -1402,11 +1425,18 @@
         const msgEl = document.getElementById('resultMessage');
         if (passed) {
             msgEl.className = 'result-message result-pass';
-            msgEl.innerHTML = `<strong>✓ PASSED</strong><br>Congratulations! You have achieved certification.`;
+            msgEl.innerHTML = `<strong>✓ PASSED</strong><br>Congratulations! You have achieved certification.<br><br>
+                <button onclick="downloadCertificate()" style="background: var(--success); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">📥 Download Certificate</button>
+                <button onclick="window.location.href='https://cphretrofit.github.io/cphretrofit/3.%20ModuleThreeFabricMeasuresV2.html'" style="background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">Next Module →</button>`;
             document.getElementById('certificate').style.display = 'block';
             document.getElementById('certScore').textContent = `${percentage}%`;
-            document.getElementById('certDate').textContent = new Date().toLocaleDateString();
+            document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
             document.getElementById('certNumber').textContent = Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            // Auto-download certificate after 2 seconds
+            setTimeout(() => {
+                downloadCertificate();
+            }, 2000);
         } else {
             msgEl.className = 'result-message result-fail';
             msgEl.innerHTML = `<strong>✗ NOT PASSED</strong><br>You need 70% to pass. Review the material and try again.`;
@@ -1416,6 +1446,77 @@
         
         // Generate review
         generateReview();
+    }
+
+    function downloadCertificate() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1200;
+        canvas.height = 800;
+        const ctx = canvas.getContext('2d');
+        
+        // Background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Border
+        ctx.strokeStyle = '#1e3a5f';
+        ctx.lineWidth = 10;
+        ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+        
+        // Header
+        ctx.fillStyle = '#1e3a5f';
+        ctx.font = 'bold 48px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Certificate of Completion', canvas.width/2, 100);
+        
+        // Subtitle
+        ctx.font = '24px Arial';
+        ctx.fillStyle = '#2c5282';
+        ctx.fillText('CPH Retrofit Training Programme', canvas.width/2, 150);
+        
+        // Module name
+        ctx.font = 'bold 36px Arial';
+        ctx.fillStyle = '#000000';
+        ctx.fillText('Module Two: PAS2030/2035 Certification Exam', canvas.width/2, 250);
+        
+        // Candidate name
+        ctx.font = 'bold 32px Arial';
+        ctx.fillStyle = '#1e3a5f';
+        ctx.fillText(candidateName, canvas.width/2, 320);
+        
+        // Pass date
+        ctx.font = '20px Arial';
+        ctx.fillStyle = '#666666';
+        const passDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+        ctx.fillText('Date of Pass: ' + passDate, canvas.width/2, 400);
+        
+        // Score - MUST BE CLEARLY VISIBLE
+        const correct = answers.filter((a, i) => a === examData[i].correct).length;
+        const percentage = Math.round((correct / 30) * 100);
+        ctx.font = 'bold 24px Arial';
+        ctx.fillStyle = '#38a169';
+        ctx.fillText(`Score: ${correct}/30 (${percentage}%)`, canvas.width/2, 470);
+        
+        // Footer
+        ctx.font = 'italic 18px Arial';
+        ctx.fillText('This certificate confirms successful completion of the assessment', canvas.width/2, 650);
+        
+        // Logo text
+        ctx.font = 'bold 28px Arial';
+        ctx.fillStyle = '#38a169';
+        ctx.fillText('CPH RETROFIT', canvas.width/2, 750);
+        
+        // Download
+        canvas.toBlob(function(blob) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `CPH_Retrofit_Module2_Certificate_${new Date().toISOString().split('T')[0]}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
     }
 
     function generateReview() {
