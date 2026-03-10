@@ -665,6 +665,46 @@
 <body>
 
     <div class="exam-container">
+        <!-- Start Screen -->
+        <div id="startScreen" style="text-align: center; padding: 3rem;">
+            <h1 style="color: var(--primary); margin-bottom: 1rem;">PAS 2035 Professional Certification</h1>
+            <p style="font-size: 1.2rem; color: #6b7280; margin-bottom: 2rem;">Advanced Assessment: Domestic Energy Efficiency Measures</p>
+            
+            <div style="background: #f3f4f6; padding: 2rem; border-radius: 12px; max-width: 600px; margin: 0 auto 2rem;">
+                <h3 style="margin-bottom: 1.5rem;">👤 Candidate Information</h3>
+                <input type="text" id="candidateName" placeholder="Enter your full name" style="
+                    width: 100%;
+                    max-width: 400px;
+                    padding: 0.75rem;
+                    font-size: 1rem;
+                    border: 2px solid var(--primary);
+                    border-radius: 8px;
+                    margin-bottom: 2rem;
+                " />
+                
+                <h3 style="margin-bottom: 1rem;">📋 Exam Information</h3>
+                <div style="text-align: left; display: inline-block;">
+                    <p>⏱️ Duration: 45 Minutes</p>
+                    <p>📝 Questions: 30 Multiple Choice</p>
+                    <p>🎯 Pass Mark: 80% (24 correct)</p>
+                    <p>📊 Difficulty: Moderate-Hard</p>
+                </div>
+            </div>
+            
+            <button onclick="startExam()" style="
+                background: var(--primary);
+                color: white;
+                border: none;
+                padding: 1rem 2rem;
+                font-size: 1.1rem;
+                font-weight: 600;
+                border-radius: 8px;
+                cursor: pointer;
+            ">Start Exam →</button>
+        </div>
+
+        <!-- Exam Interface (Hidden initially) -->
+        <div id="examInterface" style="display: none;">
         <!-- Header -->
         <div class="exam-header">
             <h1>PAS 2035 Professional Certification</h1>
@@ -733,23 +773,32 @@
                 </button>
             </div>
         </div>
+        </div><!-- End examInterface -->
 
         <!-- Certificate Section -->
         <div class="certificate-container" id="certificateSection">
-            <div class="input-group">
-                <label>Enter your full name for the certificate:</label>
-                <input type="text" id="recipientName" placeholder="e.g., John Smith" maxlength="40">
-            </div>
-            
-            <button class="btn btn-success" onclick="generateCertificate()" style="margin-bottom: 2rem;">
-                ✨ Generate Final Certificate
-            </button>
-
             <div id="certificateOutput"></div>
         </div>
     </div>
 
     <script>
+        let candidateName = '';
+        
+        function startExam() {
+            const nameInput = document.getElementById('candidateName');
+            candidateName = nameInput.value.trim();
+            
+            if (!candidateName) {
+                alert('Please enter your full name to continue.');
+                nameInput.focus();
+                return;
+            }
+            
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('examInterface').style.display = 'block';
+            startTimer();
+        }
+        
         const questions = [
             {
                 q: "Under PAS 2035, what is the maximum allowable U-value for a newly insulated solid wall to meet current compliance standards?",
@@ -936,6 +985,11 @@
         let currentQuestion = 0;
         let answers = new Array(30).fill(null);
         let startTime = Date.now();
+        
+        function startTimer() {
+            startTime = Date.now();
+        }
+        let startTime = Date.now();
         let examSubmitted = false;
 
         function initExam() {
@@ -1058,8 +1112,15 @@
             const msg = document.getElementById('resultMessage');
             if (passed) {
                 msg.className = 'result-message pass';
-                msg.innerHTML = `✓ Congratulations! You passed with ${percentage}%<br><small>You are eligible for professional certification</small>`;
+                msg.innerHTML = `✓ Congratulations! You passed with ${percentage}%<br><small>You are eligible for professional certification</small><br><br>
+                    <button onclick="downloadCertificateImage()" style="background: var(--success); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">📥 Download Certificate</button>
+                    <button onclick="window.location.href='https://cphretrofit.github.io/cphretrofit/4.%20ModuleFourSolarPV.html'" style="background: var(--primary); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin: 0.5rem;">Next Module →</button>`;
                 document.getElementById('certBtn').style.display = 'inline-flex';
+                
+                // Auto-download certificate after 2 seconds
+                setTimeout(() => {
+                    downloadCertificateImage();
+                }, 2000);
             } else {
                 msg.className = 'result-message fail';
                 msg.innerHTML = `✗ You did not pass. Required: 80%, You scored: ${percentage}%<br><small>Review the material and try again</small>`;
@@ -1163,7 +1224,78 @@
         }
 
         function downloadCertificate() {
-            alert('In a production environment, this would generate a PDF download. For now, please use the Print function and select "Save as PDF" as the printer.');
+            window.print();
+        }
+        
+        function downloadCertificateImage() {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1200;
+            canvas.height = 800;
+            const ctx = canvas.getContext('2d');
+            
+            // Background
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Border
+            ctx.strokeStyle = '#0f766e';
+            ctx.lineWidth = 10;
+            ctx.strokeRect(20, 20, canvas.width - 40, canvas.height - 40);
+            
+            // Header
+            ctx.fillStyle = '#0f766e';
+            ctx.font = 'bold 48px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('Certificate of Completion', canvas.width/2, 100);
+            
+            // Subtitle
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#14b8a6';
+            ctx.fillText('CPH Retrofit Training Programme', canvas.width/2, 150);
+            
+            // Module name
+            ctx.font = 'bold 36px Arial';
+            ctx.fillStyle = '#000000';
+            ctx.fillText('Module Three: Fabric Measures Exam', canvas.width/2, 250);
+            
+            // Candidate name
+            ctx.font = 'bold 32px Arial';
+            ctx.fillStyle = '#0f766e';
+            ctx.fillText(candidateName, canvas.width/2, 320);
+            
+            // Pass date
+            ctx.font = '20px Arial';
+            ctx.fillStyle = '#666666';
+            const passDate = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+            ctx.fillText('Date of Pass: ' + passDate, canvas.width/2, 400);
+            
+            // Score - MUST BE CLEARLY VISIBLE
+            const correct = answers.filter((a, i) => a === questions[i].correct).length;
+            const percentage = Math.round((correct / 30) * 100);
+            ctx.font = 'bold 24px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText(`Score: ${correct}/30 (${percentage}%)`, canvas.width/2, 470);
+            
+            // Footer
+            ctx.font = 'italic 18px Arial';
+            ctx.fillText('This certificate confirms successful completion of the assessment', canvas.width/2, 650);
+            
+            // Logo text
+            ctx.font = 'bold 28px Arial';
+            ctx.fillStyle = '#38a169';
+            ctx.fillText('CPH RETROFIT', canvas.width/2, 750);
+            
+            // Download
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `CPH_Retrofit_Module3_Certificate_${new Date().toISOString().split('T')[0]}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
         }
 
         function retakeExam() {
