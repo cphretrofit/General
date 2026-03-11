@@ -19,7 +19,15 @@ st.title("Excel Merge Tool")
 
 uploaded_file = st.file_uploader("Load Excel File", type=["xlsx"])
 output_dir = st.text_input("Output folder path (or leave blank to download)", value="")
-output_name = st.text_input("Output file name", value="merged_output.xlsx")
+
+# Auto-generate output filename based on uploaded file
+if uploaded_file:
+    original_name = uploaded_file.name
+    default_output_name = f"Merged - {original_name}"
+else:
+    default_output_name = "merged_output.xlsx"
+
+output_name = st.text_input("Output file name", value=default_output_name)
 
 st.subheader("Merge Rules")
 
