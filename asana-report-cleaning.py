@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import io
+import re
 
 st.set_page_config(
     page_title="CSV Cleaner",
@@ -215,6 +216,18 @@ def is_action_item(value):
     ]
     return any(val.startswith(indicator) or indicator in val for indicator in action_indicators)
 
+def build_uprn_map(df, name_col, notes_col):
+    """Build a dict mapping task Name -> UPRN from Notes column of parent rows."""
+    uprn_map = {}
+    for _, row in df.iterrows():
+        name = str(row[name_col]).strip() if pd.notna(row[name_col]) else ""
+        notes = row[notes_col] if notes_col in df.columns else None
+        if name and pd.notna(notes):
+            match = re.search(r'UPRN:\s*(\d+)', str(notes))
+            if match:
+                uprn_map[name] = match.group(1)
+    return uprn_map
+
 st.markdown('<div class="container"><div class="card">', unsafe_allow_html=True)
 st.markdown('<div class="title">🧹 CSV Cleaner</div>', unsafe_allow_html=True)
 st.markdown('<div class="subtitle">Clean your Asana exports by removing subtasks</div>', unsafe_allow_html=True)
@@ -246,6 +259,9 @@ if uploaded_file:
     
     st.markdown(f'<p class="info-text">Primary tasks are identified by having an address in "{address_col}". Subtasks (action items) without addresses will be removed.</p>', unsafe_allow_html=True)
     
+    extract_uprn = st.checkbox("Extract UPRN Number from Notes", value=True,
+        help="Pulls the UPRN number from parent task Notes and adds it as a column after the address")
+    
     if st.button("Clean CSV", disabled=False):
         original_count = len(df)
         
@@ -260,6 +276,33 @@ if uploaded_file:
             parent_idx = cols.index('Parent task')
             cols.remove('Parent task')
             cols.insert(1, 'Parent task')
+            filtered_df = filtered_df[cols]
+        
+        # ── UPRN Extraction ──────────────────────────────────────────────
+        uprn_matched = 0
+        if extract_uprn and 'Notes' in df.columns:
+            # Build lookup from ALL rows (before filtering) - parent rows have
+            # the address in Name and the UPRN in Notes
+            uprn_map = build_uprn_map(df, name_col, 'Notes')
+            
+            # Match: the kept subtask rows have the address in Parent task
+            match_col = 'Parent task' if 'Parent task' in filtered_df.columns else address_col
+            filtered_df['UPRN Number'] = filtered_df[match_col].apply(
+                lambda x: uprn_map.get(str(x).strip(), '') if pd.notna(x) else ''
+            )
+            uprn_matched = (filtered_df['UPRN Number'] != '').sum()
+            
+            # Position UPRN Number right after Parent task (or address col)
+            cols = list(filtered_df.columns)
+            cols.remove('UPRN Number')
+            insert_after = 'Parent task' if 'Parent task' in cols else address_col
+            insert_pos = cols.index(insert_after) + 1
+            cols.insert(insert_pos, 'UPRN Number')
+            
+            # Drop Notes column
+            if 'Notes' in cols:
+                cols.remove('Notes')
+            
             filtered_df = filtered_df[cols]
         
         buffer = io.StringIO()
@@ -283,7 +326,10 @@ if uploaded_file:
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown(f'<div class="success-box">✅ Cleaned file ready with {final_count} primary tasks</div>', unsafe_allow_html=True)
+        if extract_uprn and 'Notes' in df.columns:
+            st.markdown(f'<div class="success-box">✅ Cleaned file ready with {final_count} primary tasks — {uprn_matched} UPRN numbers extracted</div>', unsafe_allow_html=True)
+        else:
+            st.markdown(f'<div class="success-box">✅ Cleaned file ready with {final_count} primary tasks</div>', unsafe_allow_html=True)
         
         st.download_button(
             label="Download Cleaned CSV",
